@@ -1,0 +1,67 @@
+upstream color_servers {
+  server 127.0.0.1:1001;
+  server 127.0.0.1:1002;
+}
+
+server {
+        listen 80;
+        server_name side.serveminecraft.net;
+
+        return 301 https://$host$request_uri;
+}
+
+server {
+        listen 443 ssl;
+        server_name side.serveminecraft.net;
+
+        ssl_certificate /etc/letsencrypt/live/side.serveminecraft.net/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/side.serveminecraft.net/privkey.pem;
+
+        root /var/www/html/site1;
+
+        error_page 404 /page404.html;
+        error_log /var/log/nginx/error_site1.log debug;
+
+
+
+        location /image1 {
+                alias /var/www/html/site1;
+
+                rewrite ^ /img.jpg last;
+        }
+
+        location ~* \.(png|jpg)$ {
+                root /var/www/html/site1;
+                try_files $uri =404;
+
+                image_filter rotate 90;
+        }
+        
+        location /redblue {
+                proxy_pass http://color_servers/;
+        }
+
+        location /secondpage {
+                try_files /secondpage.html  =404;
+        }
+
+        location /music {
+                alias /var/www/html/site1/track.mp3;
+                add_header Content-Disposition 'attachment; filename="track.mp3"';
+        }
+
+        location /info.php {
+                proxy_pass http://127.0.0.1:8080/info.php;
+        }
+
+        location /secondserver {
+                proxy_pass https://www.onliner.by/;
+                proxy_set_header Host www.onliner.by;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Real-IP $remote_addr;
+        }
+
+        location / {
+                try_files $uri $uri/ =404;
+        }
+}
