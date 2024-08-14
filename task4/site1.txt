@@ -36,6 +36,11 @@ server {
 
                 image_filter rotate 90;
         }
+
+        location /image2 {
+                alias /var/www/html/site1/gen.png;
+                default_type image/png;
+        }
         
         location /redblue {
                 proxy_pass http://color_servers/;
