@@ -1,0 +1,13 @@
+FROM php:8.0-apache
+
+COPY info.php /var/www/html/info.php
+COPY apache.conf.template /etc/apache2/apache.conf.template
+COPY ports.conf.template /etc/apache2/ports.conf.template
+
+EXPOSE 80
+
+RUN apt-get update && apt-get install -y gettext-base
+
+CMD envsubst '${PORT}' < /etc/apache2/ports.conf.template > /etc/apache2/ports.conf && \
+    envsubst '${PORT}' < /etc/apache2/apache.conf.template > /etc/apache2/sites-available/000-default.conf && \
+    apache2-foreground

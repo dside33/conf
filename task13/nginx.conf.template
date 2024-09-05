@@ -1,0 +1,42 @@
+server {
+    listen $ {
+        POR
+    }
+    ;
+    server_name side.ddns.net;
+
+    root /var/www/html/site1;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location /image1 {
+        alias /var/www/html/site1;
+        rewrite ^ /img.jpg last;
+    }
+
+    location ~* \.(png|jpg)$ {
+        try_files $uri =404;
+        image_filter rotate 90;
+    }
+
+    location /image2 {
+        alias /var/www/html/site1/gen.png;
+        default_type image/png;
+    }
+
+    location /music {
+        alias /var/www/html/site1/track.mp3;
+        add_header Content-Disposition 'attachment; filename="track.mp3"';
+    }
+
+    location /info.php {
+        proxy_pass https://bba1js9jnijml4mv94qt.containers.yandexcloud.net/info.php;
+    }
+
+    location /secondserver {
+        proxy_pass https://www.onliner.by/;
+        proxy_set_header Host www.onliner.by;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Real-IP $remote_addr;
