@@ -1,0 +1,89 @@
+---
+# tasks file for docker_init_start
+
+- name: docker installation and setup for ubuntu
+  block:
+    - name: install dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg-agent
+          - software-properties-common
+        state: latest
+        update_cache: yes
+
+    - name: add docker GPG key for ubuntu
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: add docker repository for ubuntu
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu {{ ansible_facts['distribution_release'] }} stable
+        state: present
+
+    - name: install docker on ubuntu
+      apt:
+        name: docker-ce
+        state: present
+
+  when: ansible_facts['distribution'] == 'Ubuntu'
+
+- name: docker installation and setup for fedora
+  block:
+    - name: install dependencies on fedora
+      dnf:
+        name:
+          - dnf-plugins-core
+          - ca-certificates
+          - curl
+          - gnupg2
+          - lvm2
+        state: latest
+        update_cache: yes
+
+    - name: add docker repository for fedora
+      command: dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+
+    - name: install docker on fedora
+      dnf:
+        name: docker-ce
+        state: present
+
+  when: ansible_facts['distribution'] == 'Fedora'
+
+
+- name: adding users to group docker
+  user:
+    name: '{{ ansible_user }}'
+    groups: docker
+    append: yes
+
+- name: install docker-compose
+  get_url:
+    url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: '0755'
+
+- name: start and enable docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+
+- name: build and start docker services
+  block:
+    - name: build and start docker compose services on ubuntu
+      command: docker compose up --build -d
+      args:
+        chdir: /home/{{ ansible_user }}/task15-git
+      when: ansible_facts['distribution'] == 'Ubuntu'
+
+    - name: build and start docker-compose services on fedora
+      command: docker-compose up --build -d
+      args:
+        chdir: /home/{{ ansible_user }}/task15-git
+      when: ansible_facts['distribution'] == 'Fedora'

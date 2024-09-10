@@ -1,0 +1,9 @@
+
+
+- hosts: all
+  become: true
+  vars_files:
+    - group_vars/vault.yml
+  roles:
+    - clone_git_repo
+    - docker_init_start

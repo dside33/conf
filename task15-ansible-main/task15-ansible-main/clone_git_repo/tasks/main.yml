@@ -1,0 +1,29 @@
+---
+# tasks file for clone_git_repo
+
+
+- name: clone Git repo for Ubuntu
+  block:
+    - name: clone a github repository on Ubuntu
+      git:
+        repo: 'https://github.com/dside33/task15.git'
+        dest: /home/{{ ansible_user }}/task15-git
+        clone: yes
+        update: yes
+  when: ansible_facts['distribution'] == 'Ubuntu'
+
+- name: clone Git repo for Fedora
+  block:
+    - name: Install Git on Fedora
+      dnf:
+        name: git
+        state: present
+        update_cache: yes
+
+    - name: clone a github repository on Fedora
+      git:
+        repo: 'https://github.com/dside33/task15.git'
+        dest: /home/{{ ansible_user }}/task15-git
+        clone: yes
+        update: yes
+  when: ansible_facts['distribution'] == 'Fedora'
